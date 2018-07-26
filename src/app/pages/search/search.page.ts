@@ -1,17 +1,17 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ItunesService } from '../../providers/itunes/itunes.service';
 import { FormControl } from '@angular/forms';
+import { EMPTY } from 'rxjs';
 import {
-  debounceTime,
   tap,
   switchMap,
   filter,
-  catchError
+  catchError,
+  debounceTime
 } from 'rxjs/operators';
 import {
   trigger,
-  state,
   style,
   animate,
   transition,
@@ -34,7 +34,7 @@ import {
           ':enter',
           stagger('100ms', [
             animate(
-              '300ms',
+              '300ms ease-in',
               style({ opacity: 1, transform: `translate3d(0,0,0)` })
             )
           ]),
@@ -45,7 +45,7 @@ import {
   ]
 })
 export class SearchPage implements OnInit {
-  hasSearch = false;
+  public hasSearch = false;
   public listing: any[] = null;
   public isError = false;
   public showSpinner = false;
@@ -59,7 +59,7 @@ export class SearchPage implements OnInit {
   searchCanceled(e: Event) {
     (e.target as HTMLIonSearchbarElement).blur();
   }
-  searchCleared(e: Event) {
+  searchCleared() {
     this.hasSearch = false;
     this.isError = false;
     this.listing = null;
@@ -86,16 +86,19 @@ export class SearchPage implements OnInit {
           }
         }),
         debounceTime(500),
-        switchMap(term => this.itunes.load(term)),
+        switchMap(term =>
+          this.itunes.load(term).pipe(
+            catchError(() => {
+              this.showOverlay = false;
+              this.showSpinner = false;
+              this.isError = true;
+              return EMPTY;
+            })
+          )
+        ),
         tap(() => {
           this.showOverlay = false;
           this.showSpinner = false;
-        }),
-        catchError(e => {
-          this.showOverlay = false;
-          this.showSpinner = false;
-          this.isError = true;
-          return [];
         })
       )
       .subscribe(results => (this.listing = results));
