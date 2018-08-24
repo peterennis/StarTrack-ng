@@ -13,13 +13,15 @@
 
 <ion-content>
   <ion-grid fixed no-padding>
+
     <!-- No Search term? -->
     <div *ngIf="!hasSearch" padding>
       <h1>Trending Bands</h1>
-      <ion-item *ngFor=" let trending of ['Pink Floyd', 'August Burns Red', 'Alkaline Trio']" (click)="setSearch(trending)">
+      <ion-item *ngFor=" let trending of ['Jimmy Eat World', 'Senses Fail', 'Alkaline Trio']" (click)="setSearch(trending)">
         {{trending}}
       </ion-item>
     </div>
+
     <!-- Welp there's an error -->
     <div *ngIf="isError" text-center padding>
       <ion-icon color="dark" name="warning" size="large"></ion-icon>
@@ -35,7 +37,7 @@
 
     <!-- We got some songs! -->
     <div [@staggerIn]="listing?.length">
-      <ion-item *ngFor="let track of listing" detail-none [href]="'/app/detail/' + track.trackId">
+      <ion-item *ngFor="let track of listing" detail-none [href]="'detail/' + track.trackId">
         <ion-thumbnail slot="start">
           <img [src]="track.artworkUrl100" alt="" decoding="async">
         </ion-thumbnail>
@@ -49,5 +51,6 @@
         </ion-note>
       </ion-item>
     </div>
+
   </ion-grid>
 </ion-content>
