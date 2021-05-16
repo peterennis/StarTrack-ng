@@ -1,52 +1,66 @@
 <ion-app>
-  <ion-split-pane when="(min-width: 850px)" content-id="main">
-    <ion-menu  content-id="main">
+  <ion-split-pane when="(min-width: 850px)" contentId="main">
+    <ion-menu contentId="main">
       <ion-header>
         <ion-toolbar>
-          <ion-title>Star Track</ion-title>
+          <ion-title>Music</ion-title>
         </ion-toolbar>
       </ion-header>
-
       <ion-content>
+        <ion-header collapse="condense">
+          <ion-toolbar class="transparent">
+            <ion-title size="large">Music</ion-title>
+          </ion-toolbar>
+        </ion-header>
         <ion-list lines="none">
-          <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/browse" routerDirection="root" routerLinkActive="active">
+          <ion-menu-toggle autoHide="false">
+            <ion-item
+              routerLink="/browse"
+              routerDirection="root"
+              routerLinkActive="selected"
+            >
               <ion-icon name="musical-notes" slot="start"></ion-icon>
               Browse
             </ion-item>
           </ion-menu-toggle>
-          <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/search" routerDirection="root" routerLinkActive="active">
+          <ion-menu-toggle autoHide="false">
+            <ion-item
+              routerLink="/search"
+              routerDirection="root"
+              routerLinkActive="selected"
+              >
               <ion-icon name="search" slot="start"></ion-icon>
               Search
             </ion-item>
           </ion-menu-toggle>
-          <ion-menu-toggle auto-hide="false" *ngIf="!musickitConfig.isAuthorized; else isLoggedIn" class="bottom-item">
-            <ion-item (click)="login()" lines="none"  button="true">
-              <ion-icon slot="start" name="log-in"></ion-icon>
-              Login
-            </ion-item>
-          </ion-menu-toggle>
-          <ng-template #isLoggedIn>
-            <ion-menu-toggle auto-hide="false" class="bottom-item">
-              <ion-item (click)="logout()" lines="none"  button="true">
-                <ion-icon slot="start" name="log-out"></ion-icon>
-                Logout
-              </ion-item>
-            </ion-menu-toggle>
-          </ng-template>
+
+          <ng-container *rxLet="isAuthorized; let isAuth">
+            <ng-container *ngIf="isAuth">
+              <ion-menu-toggle autoHide="false">
+                <ion-item (click)="logout()" lines="none" button="true">
+                  <ion-icon slot="start" name="log-out"></ion-icon>
+                  Log Out
+                </ion-item>
+              </ion-menu-toggle>
+            </ng-container>
+            <ng-container *ngIf="!isAuth">
+              <ion-menu-toggle autoHide="false">
+                <ion-item (click)="login()" lines="none" button="true">
+                  <ion-icon slot="start" name="log-in"></ion-icon>
+                  Log In
+                </ion-item>
+              </ion-menu-toggle>
+            </ng-container>
+          </ng-container>
         </ion-list>
       </ion-content>
     </ion-menu>
-
-    <div class="ion-page"  id="main">
+    <div
+      id="main"
+      class="route-wrapper"
+    >
       <ion-router-outlet></ion-router-outlet>
+      <track-player></track-player>
     </div>
-
   </ion-split-pane>
-
-  <ion-footer class="mh-footer" translucent="true">
-    <track-player></track-player>
-  </ion-footer>
-
 </ion-app>

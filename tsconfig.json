@@ -7,18 +7,22 @@
     "declaration": false,
     "downlevelIteration": true,
     "experimentalDecorators": true,
-    "module": "esnext",
     "moduleResolution": "node",
     "importHelpers": true,
     "target": "es2015",
-    "typeRoots": ["node_modules/@types"],
+    "module": "es2020",
     "lib": ["es2018", "dom"],
     "plugins": [
-      { "name": "typescript-tslint-plugin" }
+      {
+        "name": "typescript-eslint-language-service"
+      }
     ]
   },
   "angularCompilerOptions": {
-    "fullTemplateTypeCheck": true,
-    "strictInjectionParameters": true
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
   }
+
 }

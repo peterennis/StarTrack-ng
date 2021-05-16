@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { PreviewHeaderComponent } from './preview-header.component';
 
@@ -6,11 +6,10 @@ describe('PreviewHeaderComponent', () => {
   let component: PreviewHeaderComponent;
   let fixture: ComponentFixture<PreviewHeaderComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ PreviewHeaderComponent ]
-    })
-    .compileComponents();
+      declarations: [PreviewHeaderComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

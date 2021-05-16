@@ -1,52 +1,48 @@
-import { isPlatformBrowser } from '@angular/common';
-import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
-import { Plugins, StatusBarStyle } from '@capacitor/core';
 import { MenuController, ToastController } from '@ionic/angular';
-import { MusickitConfig } from './providers/musickit-config/musickit-config';
-
+import { BehaviorSubject } from 'rxjs';
+import { Meta } from '@angular/platform-browser';
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
-  styleUrls: ['app.component.scss']
+  styleUrls: ['app.component.scss'],
 })
 export class AppComponent implements OnInit {
+  musicKitInstance = (window as any).MusicKit.getInstance();
+  musicKitEvents = (window as any).MusicKit.Events;
+  isAuthorized = new BehaviorSubject(this.musicKitInstance.isAuthorized);
+
   constructor(
     private swUpdate: SwUpdate,
     private toastCtrl: ToastController,
     private menuCtrl: MenuController,
-    public musickitConfig: MusickitConfig,
-    public router: Router,
-    // tslint:disable-next-line: ban-types
-    @Inject(PLATFORM_ID) private platformId: Object
+    private metaService: Meta
   ) {
-    // if (isPlatformBrowser(this.platformId)) {
-    //   const { SplashScreen, StatusBar } = Plugins;
-    //   SplashScreen.hide();
-    //   StatusBar.setStyle({ style: StatusBarStyle.Light });
-    // }
 
-    this.router.events.subscribe(event => {
-      if (event instanceof NavigationEnd) {
-        if (isPlatformBrowser(this.platformId)) {
-          ga('set', 'page', event.urlAfterRedirects);
-          ga('send', 'pageview');
-        }
-      }
-    });
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    this.setMetaTheme();
+    prefersDark.addEventListener('change', () => this.setMetaTheme());
+
+    this.musicKitInstance.addEventListener(
+      this.musicKitEvents.authorizationStatusDidChange,
+      this.authDidChange.bind(this)
+    );
   }
-  async ngOnInit() {
-    this.swUpdate.available.subscribe(async res => {
+  authDidChange() {
+    this.isAuthorized.next(this.musicKitInstance.isAuthorized);
+  }
+  ngOnInit() {
+    this.swUpdate.available.subscribe(async () => {
       const toast = await this.toastCtrl.create({
         message: 'Update available!',
         position: 'bottom',
         buttons: [
           {
             text: 'Reload',
-            role: 'cancel'
-          }
-        ]
+            role: 'cancel',
+          },
+        ],
       });
       await toast.present();
       toast
@@ -56,10 +52,16 @@ export class AppComponent implements OnInit {
     });
   }
   login() {
-    this.musickitConfig.authorize();
+    this.musicKitInstance.authorize();
   }
-  logout() {
-    this.musickitConfig.unauthorize();
+  async logout() {
+    await this.musicKitInstance.unauthorize();
     this.menuCtrl.close();
+  }
+  setMetaTheme() {
+    const color = getComputedStyle(document.documentElement)
+      .getPropertyValue('--ion-background-color')
+      .replace(/\s+/g, '');
+    this.metaService.updateTag({ content: color, name: 'theme-color' });
   }
 }

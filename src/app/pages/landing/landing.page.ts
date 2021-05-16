@@ -5,15 +5,18 @@ import { isPlatformBrowser } from '@angular/common';
 @Component({
   selector: 'app-landing',
   templateUrl: './landing.page.html',
-  styleUrls: ['./landing.page.scss']
+  styleUrls: ['./landing.page.scss'],
 })
 export class LandingPage implements OnInit {
   ev: any;
+  items= Array.from(new Array(50).keys());
   constructor(
-// tslint:disable-next-line: ban-types
+    // tslint:disable-next-line: ban-types
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  ) {
 
+
+  }
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       fromEvent(window, 'beforeinstallprompt').subscribe((res: any) => {

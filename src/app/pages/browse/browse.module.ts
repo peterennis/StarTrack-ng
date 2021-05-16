@@ -7,25 +7,31 @@ import { AlbumPreviewItemsModule } from '../../components/album-preview-items/al
 import { SongItemModule } from '../../components/song-item/song-item.module';
 import { FormatArtworkUrlModule } from '../../pipes/formatArtworkUrl/format-artwork-url.module';
 import { BrowsePage } from './browse.page';
-import { DetailModalComponentModule } from '../../components/detail-modal/detail-modal.module'
+import { ErrorComponentModule } from 'src/app/components/error/error.module';
+import { LetModule } from '@rx-angular/template';
+import { LazyImgModule } from 'src/app/components/lazy-img/lazy-img.module';
+import { RxForModule } from 'src/app/directives/rxfor/rxfor.module';
+
 const routes: Routes = [
   {
     path: '',
-    component: BrowsePage
-  }
+    component: BrowsePage,
+  },
 ];
-
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
     SongItemModule,
-    DetailModalComponentModule,
     AlbumPreviewItemsModule,
     FormatArtworkUrlModule,
-    RouterModule.forChild(routes)
+    ErrorComponentModule,
+    RouterModule.forChild(routes),
+    LetModule,
+    LazyImgModule,
+    RxForModule
   ],
-  declarations: [BrowsePage]
+  declarations: [BrowsePage],
 })
 export class BrowsePageModule {}

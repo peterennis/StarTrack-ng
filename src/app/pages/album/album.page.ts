@@ -1,76 +1,78 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { EMPTY } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, switchMap, map, switchMapTo } from 'rxjs/operators';
 import { AlbumModel } from '../../../@types/album-model';
 import { MusickitService } from '../../providers/musickit-service/musickit-service.service';
-import { PlayerService } from '../../providers/player/player.service';
+import { PlayerService } from '../../providers/player/player.service2';
+import { Observable, of, Subject } from 'rxjs';
+import { RxState } from '@rx-angular/state';
+import { mapToError, mapToAlbumResults } from '../../util/fetchUtils';
 
+interface IAlbumPageState {
+  collection: Partial<AlbumModel>;
+  isLoading: boolean;
+  hasError: boolean;
+  canShare: boolean;
+}
 @Component({
   selector: 'app-album',
   templateUrl: './album.page.html',
-  styleUrls: ['./album.page.scss']
+  styleUrls: ['./album.page.scss'],
+  providers: [RxState],
 })
 export class AlbumPage {
-  album: AlbumModel;
-  canShare = false;
-  isError: boolean;
+  public state$: Observable<IAlbumPageState> = this.stateService.select();
+  private ionViewDidEnter$ = new Subject<boolean>();
+
+  private fetchDataStream$ = this.route.params.pipe(
+    switchMap(({ type, id }) => this.api.fetchAlbumOrPlaylist(type, id)),
+    map(mapToAlbumResults),
+    catchError((e) => of(mapToError(e)))
+  );
+
   constructor(
     private api: MusickitService,
     private route: ActivatedRoute,
     private player: PlayerService,
-  ) {}
+    private stateService: RxState<IAlbumPageState>
+  ) {
+
+    this.stateService.set({
+      isLoading: true,
+      hasError: false,
+      collection: null,
+    });
+
+    this.stateService.connect(
+      this.ionViewDidEnter$.pipe(switchMapTo(this.fetchDataStream$))
+    );
+  }
   ionViewDidEnter() {
-    if ('share' in navigator) {
-      this.canShare = true;
-    }
-    console.log(window.history.state);
-    const id = this.route.snapshot.params.id;
-    this.api
-      .fetchAlbum(id)
-      .pipe(
-        catchError(_e => {
-          this.isError = true;
-          return EMPTY;
-        })
-      )
-      .subscribe(
-        album => {
-          this.album = album;
-        },
-        err => console.log('err', err)
-      );
+    this.ionViewDidEnter$.next();
+    this.ionViewDidEnter$.complete();
   }
-  playSong(index: number) {
-    this.player
-      .setQueueFromItems(this.album.relationships.tracks.data, index)
-      .subscribe();
+  playSong(index: number, shuffle = false) {
+    this.player.setQueueFromItems(
+      Array.from(this.stateService.get().collection.relationships.tracks.data),
+      index,
+      shuffle
+    );
   }
-  playAlbum(event: any) {
-    if (event.shuffle) {
-      this.player.toggleShuffleOn();
-    }
-    this.player
-      .setQueueFromItems(this.album.relationships.tracks.data)
-      .subscribe(() => {
-        if (event.shuffle) {
-          this.player.toggleShuffleOff();
-        }
-      });
+  playAlbum({ shuffle }) {
+    this.playSong(0, shuffle);
   }
   share() {
-    if ('share' in navigator) {
+    const { collection, canShare } = this.stateService.get();
+    if (canShare) {
       (navigator as any)
         .share({
           title: 'Star Track',
-          text: `Check out "${this.album.attributes.name}" by ${
-            this.album.attributes.artistName
-          }. Via Star Track.`,
-          url: `${window.location.origin}/album/${this.album.id}`
+          text: `Check out "${collection.attributes.name}" by ${collection.attributes.artistName}. Via Star Track.`,
+          url: `${window.location.origin}/album/${collection.id}`,
         })
         .then(
           () => console.log('Successful share'),
-          error => console.log('Error sharing', error)
+          (error: any) => console.log('Error sharing', error)
         );
     }
   }
